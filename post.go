@@ -76,5 +76,5 @@ func main() {
 	}
 	squadAlltime := fmt.Sprintf("kills %.0f\nmatchPlayed %f\nwins %f\nK/D %f\n", d.Data.Player.Segments[1].Stats[0].Value, d.Data.Player.Segments[1].Stats[2].Value, d.Data.Player.Segments[1].Stats[3].Value, d.Data.Player.Segments[1].Stats[8].Value)
 	fmt.Println(squadAlltime)
-	fmt.Println(len(d.Data.Player.Segments))
+	fmt.Println(d)
 }

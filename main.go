@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -61,6 +62,16 @@ type PlayerData struct {
 	} `json:"data"`
 }
 
+type SuperUser struct {
+	Number        int
+	UserName      string
+	UserId        string
+	LastUpadate   string
+	PrePlayerData PlayerData
+}
+
+type SuperUsers []SuperUser
+
 var (
 	Token          = "Bot NTM1MTc4MTA2NDA3NzQ3NjA0.DyEbaQ.3eORw3CVDCqn4NbR66VF6wDpwxA"
 	BotName        = "<@535178106407747604>"
@@ -71,6 +82,9 @@ var (
 	GetSquadWeekly = "!getSquadWeekly"
 	GetStats       = "!getStats"
 	Search         = "!search"
+	SetUser        = "!set"
+	Fnlc           = "!fnlc"
+	Users          = SuperUsers{}
 )
 
 func main() {
@@ -93,6 +107,7 @@ func main() {
 }
 
 func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
+	message := ""
 	c, err := s.State.Channel(m.ChannelID)
 	if err != nil {
 		log.Println("Error getting channel: ", err)
@@ -103,6 +118,54 @@ func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	switch {
 	case strings.HasPrefix(m.Content, fmt.Sprintf("%s %s", BotName, HelloWorld)):
 		sendMessage(s, c, "Hello world！")
+
+	case strings.HasPrefix(m.Content, fmt.Sprintf("%s", Fnlc)):
+		messageContentList := strings.Fields(m.Content)
+		if len(messageContentList) > 1 {
+			i, err := strconv.Atoi(messageContentList[1])
+			if err != nil {
+				sendMessage(s, c, "Error strconv")
+				return
+			}
+			if len(Users) > i {
+				newPlayerData := getPlayerData(Users[i].UserId)
+				if len(newPlayerData.Data.Player.Segments) > 5 && len(Users[i].PrePlayerData.Data.Player.Segments) > 5 {
+					duoAlltime := fmt.Sprintf("duoAlltime: kills %5.0f(%f), matchPlayed %5.0f(%f), wins %5.0f(%f), K/D %f(%f)\n", newPlayerData.Data.Player.Segments[0].Stats[0].Value, (newPlayerData.Data.Player.Segments[0].Stats[0].Value - Users[i].PrePlayerData.Data.Player.Segments[0].Stats[0].Value), newPlayerData.Data.Player.Segments[0].Stats[2].Value, (newPlayerData.Data.Player.Segments[0].Stats[2].Value - Users[i].PrePlayerData.Data.Player.Segments[0].Stats[2].Value), newPlayerData.Data.Player.Segments[0].Stats[3].Value, (newPlayerData.Data.Player.Segments[0].Stats[3].Value - Users[i].PrePlayerData.Data.Player.Segments[0].Stats[3].Value), newPlayerData.Data.Player.Segments[0].Stats[8].Value, (newPlayerData.Data.Player.Segments[0].Stats[8].Value - Users[i].PrePlayerData.Data.Player.Segments[0].Stats[8].Value))
+					squadAlltime := fmt.Sprintf("squAlltime: kills %5.0f(%f), matchPlayed %5.0f(%f), wins %5.0f(%f), K/D %f(%f)\n", newPlayerData.Data.Player.Segments[1].Stats[0].Value, (newPlayerData.Data.Player.Segments[1].Stats[0].Value - Users[i].PrePlayerData.Data.Player.Segments[1].Stats[0].Value), newPlayerData.Data.Player.Segments[1].Stats[2].Value, (newPlayerData.Data.Player.Segments[1].Stats[2].Value - Users[i].PrePlayerData.Data.Player.Segments[1].Stats[2].Value), newPlayerData.Data.Player.Segments[1].Stats[3].Value, (newPlayerData.Data.Player.Segments[1].Stats[3].Value - Users[i].PrePlayerData.Data.Player.Segments[1].Stats[3].Value), newPlayerData.Data.Player.Segments[1].Stats[8].Value, (newPlayerData.Data.Player.Segments[1].Stats[8].Value - Users[i].PrePlayerData.Data.Player.Segments[1].Stats[8].Value))
+					soloAlltime := fmt.Sprintf("solAlltime: kills %5.0f(%f), matchPlayed %5.0f(%f), wins %5.0f(%f), K/D %f(%f)\n", newPlayerData.Data.Player.Segments[2].Stats[0].Value, (newPlayerData.Data.Player.Segments[2].Stats[0].Value - Users[i].PrePlayerData.Data.Player.Segments[2].Stats[0].Value), newPlayerData.Data.Player.Segments[2].Stats[2].Value, (newPlayerData.Data.Player.Segments[2].Stats[2].Value - Users[i].PrePlayerData.Data.Player.Segments[2].Stats[2].Value), newPlayerData.Data.Player.Segments[2].Stats[3].Value, (newPlayerData.Data.Player.Segments[2].Stats[3].Value - Users[i].PrePlayerData.Data.Player.Segments[2].Stats[3].Value), newPlayerData.Data.Player.Segments[2].Stats[8].Value, (newPlayerData.Data.Player.Segments[2].Stats[8].Value - Users[i].PrePlayerData.Data.Player.Segments[2].Stats[8].Value))
+					duoWeekly := fmt.Sprintf("duoWeekly: kills %5.0f(%f), matchPlayed %5.0f(%f), wins %5.0f(%f), K/D %f(%f)\n", newPlayerData.Data.Player.Segments[3].Stats[0].Value, (newPlayerData.Data.Player.Segments[3].Stats[0].Value - Users[i].PrePlayerData.Data.Player.Segments[3].Stats[0].Value), newPlayerData.Data.Player.Segments[3].Stats[2].Value, (newPlayerData.Data.Player.Segments[3].Stats[2].Value - Users[i].PrePlayerData.Data.Player.Segments[3].Stats[2].Value), newPlayerData.Data.Player.Segments[3].Stats[3].Value, (newPlayerData.Data.Player.Segments[3].Stats[3].Value - Users[i].PrePlayerData.Data.Player.Segments[3].Stats[3].Value), newPlayerData.Data.Player.Segments[3].Stats[8].Value, (newPlayerData.Data.Player.Segments[3].Stats[8].Value - Users[i].PrePlayerData.Data.Player.Segments[3].Stats[8].Value))
+					squadWeekly := fmt.Sprintf("squWeekly: kills %5.0f(%f), matchPlayed %5.0f(%f), wins %5.0f(%f), K/D %f(%f)\n", newPlayerData.Data.Player.Segments[4].Stats[0].Value, (newPlayerData.Data.Player.Segments[4].Stats[0].Value - Users[i].PrePlayerData.Data.Player.Segments[4].Stats[0].Value), newPlayerData.Data.Player.Segments[4].Stats[2].Value, (newPlayerData.Data.Player.Segments[4].Stats[2].Value - Users[i].PrePlayerData.Data.Player.Segments[4].Stats[2].Value), newPlayerData.Data.Player.Segments[4].Stats[3].Value, (newPlayerData.Data.Player.Segments[4].Stats[3].Value - Users[i].PrePlayerData.Data.Player.Segments[4].Stats[3].Value), newPlayerData.Data.Player.Segments[4].Stats[8].Value, (newPlayerData.Data.Player.Segments[4].Stats[8].Value - Users[i].PrePlayerData.Data.Player.Segments[4].Stats[8].Value))
+					soloWeekly := fmt.Sprintf("solWeekly: kills %5.0f(%f), matchPlayed %5.0f(%f), wins %5.0f(%f), K/D %f(%f)\n", newPlayerData.Data.Player.Segments[5].Stats[0].Value, (newPlayerData.Data.Player.Segments[5].Stats[0].Value - Users[i].PrePlayerData.Data.Player.Segments[5].Stats[0].Value), newPlayerData.Data.Player.Segments[5].Stats[2].Value, (newPlayerData.Data.Player.Segments[5].Stats[2].Value - Users[i].PrePlayerData.Data.Player.Segments[5].Stats[2].Value), newPlayerData.Data.Player.Segments[5].Stats[3].Value, (newPlayerData.Data.Player.Segments[5].Stats[3].Value - Users[i].PrePlayerData.Data.Player.Segments[5].Stats[3].Value), newPlayerData.Data.Player.Segments[5].Stats[8].Value, (newPlayerData.Data.Player.Segments[5].Stats[8].Value - Users[i].PrePlayerData.Data.Player.Segments[5].Stats[8].Value))
+					message = "```\n" + soloAlltime + duoAlltime + squadAlltime + "\n" + soloWeekly + duoWeekly + squadWeekly + "```\n"
+					head := Users[i].UserName + "'s Stats:doughnut:\n"
+					message = head + message
+					Users[i].PrePlayerData = newPlayerData
+				} else {
+					message = "```\n" + "Error" + "```\n"
+				}
+			} else {
+				message = "You need set username and get your number! `@fnlc !set {YOUR USERID}`"
+			}
+			sendMessage(s, c, message)
+		} else {
+			sendMessage(s, c, "Input your number! ex.`!fnlc {YOUR NUMBER}`")
+		}
+	case strings.HasPrefix(m.Content, fmt.Sprintf("%s %s", BotName, SetUser)):
+		messageContentList := strings.Fields(m.Content)
+		if len(messageContentList) > 2 {
+			var user SuperUser
+			num := len(Users)
+			user.Number = num
+			user.UserName = messageContentList[2]
+			user.UserId = getId(messageContentList[2])
+			user.PrePlayerData = getPlayerData(user.UserId)
+			Users = append(Users, user)
+			message := "your number is " + fmt.Sprint(user.Number)
+			fmt.Printf(string(user.Number))
+			sendMessage(s, c, message)
+		} else {
+			sendMessage(s, c, "Input your username! ex.'@fnlc getId {YOUR USERNAME}")
+		}
 	case strings.HasPrefix(m.Content, fmt.Sprintf("%s %s", BotName, GetId)):
 		messageContentList := strings.Fields(m.Content)
 		if len(messageContentList) > 2 {
@@ -223,6 +286,30 @@ func getSquadWeekly(userId string) string {
 
 	s := fmt.Sprintf("%f", d.Data.Player.Stats[8].Value)
 	return s
+}
+
+func getPlayerData(userId string) PlayerData {
+	url := "https://api.scoutsdk.com/graph"
+	var jsonStr = []byte(`{"query":"query player($title: String, $id: String, $segment: String) { player(title: $title, id: $id, segment: $segment)  { id metadata { key name value displayValue } stats { metadata { key name isReversed } value displayValue } segments { metadata { key name value displayValue } stats { metadata { key name isReversed } value displayValue } } }}","variables":{ "title": "fortnite", "segment": "*", "id": "` + userId + `"}}`)
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
+	req.Header.Set("Host", "api.scoutsdk.com")
+	req.Header.Set("Accept", "application/com.scoutsdk.graph+json; version=1.1.0; charset=utf8")
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Content-Length", "313")
+	req.Header.Set("Scout-App", "1fbb8b74-2a24-4855-9a64-60fb4acfdd78")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+	}
+	defer resp.Body.Close()
+
+	var d PlayerData
+	body, _ := ioutil.ReadAll(resp.Body)
+	err = json.Unmarshal(body, &d)
+	if err != nil {
+	}
+	return d
 }
 
 func getStats(userId string) string {
