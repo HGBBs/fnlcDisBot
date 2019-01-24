@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -73,7 +74,7 @@ type SuperUser struct {
 type SuperUsers []SuperUser
 
 var (
-	Token          = "Bot NTM1MTc4MTA2NDA3NzQ3NjA0.DyEbaQ.3eORw3CVDCqn4NbR66VF6wDpwxA"
+	Token          = os.Getenv("FNLCTOKEN")
 	BotName        = "<@535178106407747604>"
 	stopBot        = make(chan bool)
 	vcsession      *discordgo.VoiceConnection
